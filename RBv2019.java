@@ -37,10 +37,10 @@ public class RBv2019 {
 
 	private static final int MIN_DISTANCE_FRONT = 15; // Minimum distance to front wall.
 	private static final int MIN_DISTANCE_RIGHT = 15; // Minimum distance to right wall.
-	private static final int MIN_DISTANCE_LEFT = 20; // Minimum distance to left wall.
+	private static final int MIN_DISTANCE_LEFT = 15; // Minimum distance to left wall.
 
 	private static final float GAIN = 0.8f; // Gain of the proportional control.
-	private static final float GAIN_LEFT = 1.0f; // Gain of the proportional control.
+	private static final float GAIN_LEFT = 1.2f; // Gain of the proportional control.
 	private static final int DELTA_LIMITE = 5; // Delta limit of the proportional control.
 
 	private static final int LINE_LIMIT = 100; // Limit to detect the white lines.
@@ -205,7 +205,7 @@ public class RBv2019 {
 		delta = (delta > DELTA_LIMITE ? DELTA_LIMITE : delta);
 
 		// Move the robot proportionally to the error.
-		move(BASE_POWER, delta);
+		move(BASE_POWER, delta + 1 );
 
 		// ===== Transition conditions of the state =====
 
@@ -230,7 +230,9 @@ public class RBv2019 {
 						maneuverToGoToNextRoom();
 					}
 				if (mRoom == 4) {
-						mRoom = 3;
+					move(-BASE_POWER,3);
+					wait(1500);
+					rotateAngle(80);
 					}
 			}
 
@@ -287,13 +289,14 @@ public class RBv2019 {
 		mFan.setPower(0);
 		mFlameLED.clear();
 		mFlame = false;
-		move(-BASE_POWER, 0);
-		wait(1000);
-		rotateAngle(180);	
+		rotateAngle(-210);
+		//move(-BASE_POWER, 0);
+		//wait(500);
+			
 		do {
 			move(BASE_POWER, 3);
 		}
-		while (getDistance(mFrontSonar) > 20);
+		while (getDistance(mFrontSonar) > 15);
 		
 		if(mRoom == 3) {
 			return NAVIGATE_RIGHT;
@@ -306,14 +309,12 @@ public class RBv2019 {
 
 private static int returnState() {
 			checkBumpers();
-			
-			
 				if (getDistance(mFrontSonar) < MIN_DISTANCE_FRONT) {
 					rotateAngle(-90);
 				}
 				int delta = (int) ((getDistance(mLeftSonar) - MIN_DISTANCE_LEFT) * GAIN_LEFT);
 				delta = (delta > DELTA_LIMITE ? DELTA_LIMITE : delta);
-				move(BASE_POWER, -delta);
+				move(BASE_POWER, -delta+2);
 			
 
 			int floorTag = getFloorTag();
@@ -321,12 +322,18 @@ private static int returnState() {
 			if(floorTag == LINE_TAG) {
 				linereturn++;
 				
-				if(linereturn > 2) {
+				if(linereturn > 1) {
 					
-					move(-BASE_POWER,0);
+					if(mRoom == 5){
+						move(BASE_POWER,3);
+						wait(500);
+						return NAVIGATE_RIGHT;
+				}
+					
+					move(-BASE_POWER,3);
 					wait(1000);
-					rotateAngle(80);
-					move(BASE_POWER,0);
+					rotateAngle(-700);
+					move(BASE_POWER,3);
 					wait(1000);
 				}
 				
@@ -468,16 +475,18 @@ private static int returnState() {
 			wait(500);
 			break;
 		case 2:
-			move(-BASE_POWER, 0);
-			rotateAngle(90);
-			move(BASE_POWER, 3);
-			wait(1000);
+			move(-BASE_POWER, 3);
+			wait(500);
+			rotateAngle(100);
+			move(BASE_POWER, 0);
+			wait(500);
 			break;
 		case 3:
-			move(-BASE_POWER, 0);
-			rotateAngle(90);
-			move(BASE_POWER, 3);
-			wait(1000);
+			move(-BASE_POWER, 3);
+			wait(500);
+			rotateAngle(100);
+			move(BASE_POWER, 0);
+			wait(500);
 			break;
 		case 4:
 			break;
