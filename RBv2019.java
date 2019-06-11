@@ -68,7 +68,6 @@ public class RBv2019 {
 	private static int mTotalLines;
 
 	private static IntelliBrainDigitalIO mStartButton;
-
 	private static IntelliBrainDigitalIO mStopButton;
 
 	private static AnalogInput[] mAnalogSensors;
@@ -78,12 +77,8 @@ public class RBv2019 {
 	private static int mRoom;
 	private static int linereturn;
 	
-	private static int mode;
-
 	private static Motor mFan;
-
 	private static IntelliBrainDigitalIO mFlameLED;
-
 	private static AnalogInput mUVTronSensor;
 
 	public static void main(String[] args) {
@@ -174,7 +169,6 @@ public class RBv2019 {
 		mFlame = true;
 		mFlameInRoom = false;
 		mRoom = 0;
-		mode = 0;
 		linereturn = 0;
 
 
