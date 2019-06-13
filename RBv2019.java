@@ -18,6 +18,7 @@ public class RBv2019 {
 	private static final int CENTER = 2; // Center the robot in relation to the candle flame.
 	private static final int PUT_OUT = 3; // Put out the candle flame.
 	private static final int RETURN = 4;
+	private static final int RETURNR =5;
 
 	
 	// Possible types of floor tags.
@@ -78,6 +79,7 @@ public class RBv2019 {
 	private static int mRoom;
 	private static int linereturn;
 	
+
 	private static Motor mFan;
 
 	private static IntelliBrainDigitalIO mFlameLED;
@@ -147,6 +149,9 @@ public class RBv2019 {
 				break;
 			case RETURN:
 				state = returnState();
+				break;
+			case RETURNR:
+				state = returnRightState();
 				break;
 			}
 			mLcd.print(0, "" + mFlameInRoom);
@@ -227,12 +232,14 @@ public class RBv2019 {
 						maneuverToGoToNextRoom();
 					}
 				if (mRoom == 4) {
-					move(-BASE_POWER,3);
+					move(-BASE_POWER,5);
 					wait(1500);
 					rotateAngle(80);
-					}
+					}	
 			}
 
+		
+		countLines2();
 		// If mFlameSensor returns a valid direction, go to state CENTER.
 		// This test should be performed only if the robot is within a room
 		// since there is no flames in the corridors. doing so will prevent
@@ -284,7 +291,7 @@ public class RBv2019 {
 		mFan.setPower(16);
 		wait(2000);
 		mFan.setPower(0);
-		wait(500);
+		wait(1000);
 		if(mFlameSensor.scan() > 0) {		
 			return CENTER;
 		}		
@@ -299,8 +306,9 @@ public class RBv2019 {
 		}
 		while (getDistance(mFrontSonar) > 15);
 		
-		if(mRoom == 3) {
-			return NAVIGATE_RIGHT;
+		if(mRoom >= 3) {
+	
+			return RETURNR;
 			
 		}
 		
@@ -347,6 +355,41 @@ private static int returnState() {
 			}
 			return RETURN;
 			}
+
+private static int returnRightState() {
+	// ===== Action of the state =====
+			// Rotate left if wall in front.
+			if (getDistance(mFrontSonar) < MIN_DISTANCE_FRONT)
+				rotateAngle(90);
+
+			checkBumpers(); // Check if bumpers are colliding with something.
+			// countLines();
+			// countLines2(); // Count white lines.
+
+			// Proportional control
+			// float error = (getDistance(mRightSonar) - MIN_DISTANCE_RIGHT);
+			// int delta = (int) (error * GAIN);
+			int delta = (int) ((getDistance(mRightSonar) - MIN_DISTANCE_RIGHT) * GAIN);
+
+			// Limit the delta to solve situation where the error is to big, like in certain
+			// corners.
+			delta = (delta > DELTA_LIMITE ? DELTA_LIMITE : delta);
+
+			// Move the robot proportionally to the error.
+			move(BASE_POWER, delta + 1 );
+
+			// ===== Transition conditions of the state =====
+
+			// If at start circle and flame still lit, than go back to go to island room.
+			// Else go to state WAIT.
+
+			int floorTag = getFloorTag();
+			if (floorTag == CIRCLE_TAG) {
+				return WAIT;
+			}
+			return RETURNR;
+
+	}
 	
 	// ================================================================================
 	// Methods to read sensors.
@@ -413,6 +456,7 @@ private static int returnState() {
 	private static void move(int power, int delta) {
 		mLeftMotor.setPower(power + delta);
 		mRightMotor.setPower(power - delta);
+		displayFlameSensorData(1);
 	}
 
 	private static void rotate(int power) {
@@ -453,8 +497,8 @@ private static int returnState() {
 	}
 
 	private static void maneuverToReturnBack() {
-		rotateAngle(180);
-		move(BASE_POWER, 0);
+		rotateAngle(90);
+		move(BASE_POWER, 3);
 		wait(2000);
 	}
 
@@ -485,11 +529,12 @@ private static int returnState() {
 		case 3:
 			move(-BASE_POWER, 3);
 			wait(500);
-			rotateAngle(100);
-			move(BASE_POWER, 0);
+			rotateAngle(90);
+			move(BASE_POWER, 3);
 			wait(500);
 			break;
-		case 4:
+		case 6:
+
 			break;
 		}
 	}
