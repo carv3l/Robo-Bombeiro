@@ -68,6 +68,7 @@ public class RBv2019 {
 	private static int mTotalLines;
 
 	private static IntelliBrainDigitalIO mStartButton;
+
 	private static IntelliBrainDigitalIO mStopButton;
 
 	private static AnalogInput[] mAnalogSensors;
@@ -78,7 +79,9 @@ public class RBv2019 {
 	private static int linereturn;
 	
 	private static Motor mFan;
+
 	private static IntelliBrainDigitalIO mFlameLED;
+
 	private static AnalogInput mUVTronSensor;
 
 	public static void main(String[] args) {
@@ -243,7 +246,6 @@ public class RBv2019 {
 		return NAVIGATE_RIGHT;
 	}
 
-	//This function is called when the robot detects the flame with the flame sensor
 	private static int centerState() {
 
 		switch (mFlameSensor.scan()) { // Make a scan to get the direction towards the flame.
@@ -278,34 +280,35 @@ public class RBv2019 {
 		return CENTER;
 	}
 
-	//This fuctiom is called when the robot is right in front of the flame
 	private static int putOutState() {
 		mFan.setPower(16);
 		wait(2000);
 		mFan.setPower(0);
+		wait(500);
+		if(mFlameSensor.scan() > 0) {		
+			return CENTER;
+		}		
 		mFlameLED.clear();
 		mFlame = false;
-		
-		//In order to do the return , the robot needs to stay away from the flame and move until it reaches some wall
-		rotateAngle(-210);		
+		rotateAngle(-210);
+		//move(-BASE_POWER, 0);
+		//wait(500);
+			
 		do {
 			move(BASE_POWER, 3);
 		}
 		while (getDistance(mFrontSonar) > 15);
-		//In case the robot is in the third room, to recycle code we decided using the navigate right as our orientation method
-		//The only sensor that is called and is unnecessary is the uvTron, in case it reaches some line.
+		
 		if(mRoom == 3) {
 			return NAVIGATE_RIGHT;
+			
 		}
 		
-		// THe first, second room and the isle use the navigation to the left
 		return RETURN;
 		
 	}
 
-	//This fuction is called when the flame is estinguished
-	//Basically goes back to the base position, orientating by the left
-	private static int returnState() {
+private static int returnState() {
 			checkBumpers();
 				if (getDistance(mFrontSonar) < MIN_DISTANCE_FRONT) {
 					rotateAngle(-90);
@@ -348,15 +351,14 @@ public class RBv2019 {
 	// ================================================================================
 	// Methods to read sensors.
 	// ================================================================================
-	//This method is called when is necessary to get the distance value of a given sensor
+
 	private static float getDistance(RangeFinder s) {
 		s.ping();
 		wait(10);
 		float d = s.getDistanceCm();
 		return (d < 0 ? 100f : d);
 	}
-	//This methond is called in the return and navigate_right state to help the robot avoid obstacles
-	//In case a bumper is activated the robot moves backward in the same orientation of the activated bumper
+
 	private static void checkBumpers() {
 		if (!mLeftBumper.isSet() && !mRightBumper.isSet()) {
 			move(-BASE_POWER, 0); // Move backwards.
@@ -371,18 +373,18 @@ public class RBv2019 {
 	}
 
 
-//This is a testing method to count lines in the floor and send the total of lines to the incorporated screen
+
 	private static void countLines2() {
 		if (getFloorTag() == LINE_TAG) {
 			mTotalLines++;
 			mLcd.print(1, "L: " + mTotalLines);
 		}
 	}
-//This is a testing method to test the line sensor, it displays the value of the sensor when is navigating in the arena
+
 	private static void testLineSensor() {
 		mLcd.print(1, "L: " + mLineSensor.sample());
 	}
-//This fuction when called returns if a tag is detected in the floor
+
 	private static int getFloorTag() {
 		if (mLineSensor.sample() < LINE_LIMIT) {
 			move(BASE_POWER, 0);
@@ -412,14 +414,12 @@ public class RBv2019 {
 		mLeftMotor.setPower(power + delta);
 		mRightMotor.setPower(power - delta);
 	}
-//This funtion when called rotates the robot in a given power , its required for the rotateAngle fuction
+
 	private static void rotate(int power) {
 		mLeftMotor.setPower(-power);
 		mRightMotor.setPower(power);
 	}
-	// This fuction rotates the robot in a given angle.
-	//Basically it calls the rotate() function, but it tell to rotate in a given time ("function wait"),the time calculation is
-	//the angle provided by the user multipling with the angle to time factor wich is result of the rule of three(regra dos 3 simples)
+
 	private static void rotateAngle(int angle) {
 		if (angle < 0) {
 			angle = -angle;
@@ -431,12 +431,12 @@ public class RBv2019 {
 		wait((int) (angle * ANGLE_TO_TIME_FACTOR));
 		stop();
 	}
- 	//Stop suddenly the servos moving the robot
+
 	private static void stop() {
 		mLeftMotor.stop();
 		mRightMotor.stop();
 	}
-	// Soft stop of the servos
+
 	private static void brake() {
 		mLeftMotor.brake();
 		mRightMotor.brake();
@@ -445,14 +445,13 @@ public class RBv2019 {
 	// ================================================================================
 	// Methods to implement maneuvers.
 	// ================================================================================
-	
-	//Moves the robot foward until it exits the circle
+
 	private static void maneuverToExitWhiteCircle() {
 		move(Motor.MAX_FORWARD, 0);
 		do {
 		} while (mLineSensor.sample() < LINE_LIMIT);
 	}
-	
+
 	private static void maneuverToReturnBack() {
 		rotateAngle(180);
 		move(BASE_POWER, 0);
